@@ -14,7 +14,17 @@ app.get('/coordinates', (req, res) => {
 });
 
 app.post('/configure', (req, res) => {
-  pendulum.configure(req.body.mass, req.body.angularOffset, req.body.stringLength);
+  pendulum.configure(req.body.mass, req.body.angularOffset, req.body.stringLength, req.body.stringOffset);
+  res.send();
+});
+
+app.get('/start', (_, res) => {
+  pendulum.start();
+  res.send();
+});
+
+app.get('/stop', (_, res) => {
+  pendulum.stop();
   res.send();
 });
 

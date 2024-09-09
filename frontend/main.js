@@ -1,88 +1,102 @@
 import './style.css'
+import {Pendulum} from './pendulum.js';
 
 const canvas = document.getElementById('pendulum-render');
-const ctx = canvas.getContext('2d');
+const canvasContext = canvas.getContext('2d');
 
 const startBtn = document.querySelector('#startBtn');
 const stopBtn = document.querySelector('#stopBtn');
 
-let simulationRunning = false;
+const danglePoints = [200, 400, 600, 800, 1000];
+const pendulums = [
+  new Pendulum(0, canvasContext, danglePoints[0], 100, 400, 15),
+];
 
-const pp = {
-  mass: 25,
-  angle: Math.PI / 4,
-  bob: {x: 0, y: 0, mass: 25},
-  len: 500,
-  origin: {x: 800, y: 0},
-  angleV: 0,
-  angleA: 0,
-  force: 0,
-  configured: false,
+let simulationRunning = false;
+let i = -1;
+let isDragging = null;
+
+
+function draw() {
+  canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (const p of pendulums) {
+    p.draw();
+  }
+
+  requestAnimationFrame(draw);
 }
 
-const draw = () => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // const force = (Math.sin(pp.angle) * (pp.mass * 0.0110808)) / pp.len;
-  // pp.angleA = -1 * force;
-  // pp.angleV += pp.angleA;
-  // pp.angle += pp.angleV || 0.01;
-  //
-  // // dampen the velocity
-  // pp.angleV *= 0.999;
-
-
-  // pp.bob.x = pp.len * Math.sin(pp.angle) + pp.origin.x;
-  // pp.bob.y = pp.len * Math.cos(pp.angle) + pp.origin.y;
-
-  const circle = new Path2D();
-  circle.arc(pp.bob.x+pp.origin.x, pp.bob.y, pp.bob.mass * 2, 0, Math.PI * 2);
-  ctx.fill(circle);
-
-  ctx.beginPath();
-  ctx.moveTo(pp.origin.x, pp.origin.y);
-  ctx.lineTo(pp.bob.x+pp.origin.x, pp.bob.y);
-  ctx.stroke();
-  ctx.closePath();
-
-  // requestAnimationFrame(draw);
-};
-
-async function getPendulumCoordinates (){
-  if (!pp.configured) {
-    await fetch('http://localhost:3000/configure', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        angularOffset: pp.angle,
-        mass: pp.mass,
-        stringLength: pp.len,
-      })
-    });
-    pp.configured = true;
+async function updatePendulums() {
+  const index = ++i % pendulums.length;
+  if (simulationRunning) {
+    await pendulums[index].getCoordinates();
+    requestAnimationFrame(() => setTimeout(updatePendulums, 100));
   }
-  const response = await fetch('http://localhost:3000/coordinates');
-  const {x, y} = await response.json();
-  pp.bob.x = x;
-  pp.bob.y = y;
-  requestAnimationFrame(() => {
-    draw();
-    if (simulationRunning) {
-      setTimeout(getPendulumCoordinates, 200);
-    }
-  });
 }
 
 function start() {
+  pendulums.forEach(async (p) => {
+    await p.configure();
+    await p.start();
+  });
   simulationRunning = true;
-  getPendulumCoordinates();
+  updatePendulums();
 }
 
 function stop() {
   simulationRunning = false;
+  pendulums.forEach((p) => p.stop());
 }
+
+function getCanvasMousePosition(ev) {
+  const {left: offsetX, top: offsetY} = canvas.getBoundingClientRect();
+  const mouseX = ev.clientX - offsetX;
+  const mouseY = ev.clientY - offsetY;
+
+  return {x: mouseX, y: mouseY};
+}
+
+function limit(n, min, max) {
+  return Math.min(Math.max(n, min), max);
+}
+
+const canvasMouseDown = (ev) => {
+  ev.preventDefault();
+  ev.stopPropagation();
+
+  const {x, y} = getCanvasMousePosition(ev);
+
+  const pendulum = pendulums.find(p => p.isWithinBob(x, y));
+  if (pendulum) {
+    if (simulationRunning) {
+      stop();
+    }
+    isDragging = pendulum.index;
+  }
+};
+
+const canvasMouseMove = (ev) => {
+  if (isDragging !== null) {
+    const {x, y} = getCanvasMousePosition(ev);
+    pendulums[isDragging].x = limit(x, 0, 1800);
+    pendulums[isDragging].y = limit(y, 0, 600);
+  }
+};
+
+const canvasMouseUp = (ev) => {
+  if (isDragging !== null) {
+    pendulums[isDragging].calculateParamsFromCoordinates();
+    isDragging = null;
+  }
+};
+
+canvas.addEventListener('mousedown', canvasMouseDown);
+canvas.addEventListener('mousemove', canvasMouseMove);
+canvas.addEventListener('mouseup', canvasMouseUp);
+canvas.addEventListener('mouseout', canvasMouseUp);
 
 startBtn.addEventListener('click', start);
 stopBtn.addEventListener('click', stop);
+
+requestAnimationFrame(draw);

@@ -4,6 +4,7 @@ export default class Pendulum {
   mass;
   angularOffset;
   stringLength = 0;
+  stringOffset = 0;
 
   angle;
   velocity = 0;
@@ -11,14 +12,14 @@ export default class Pendulum {
   interval;
   simulationRunning = false;
 
-  configure(mass, angularOffset, stringLength) {
+  configure(mass, angularOffset, stringLength, stringOffset) {
     this.mass = mass;
 
     this.angularOffset = angularOffset;
     this.angle = this.angularOffset;
 
     this.stringLength = stringLength;
-    this.start();
+    this.stringOffset = stringOffset;
   }
 
   start() {
@@ -41,7 +42,7 @@ export default class Pendulum {
     this.velocity += acceleration;
     this.angle += this.velocity;
 
-    this.x = (this.stringLength * Math.sin(this.angle));
+    this.x = (this.stringLength * Math.sin(this.angle)) + this.stringOffset;
     this.y = this.stringLength * Math.cos(this.angle);
 
     // dampen the velocity
