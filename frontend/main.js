@@ -3,10 +3,10 @@ import './style.css'
 const canvas = document.getElementById('pendulum-render');
 const ctx = canvas.getContext('2d');
 
-const ORIGIN = {
-  x: 400,
-  y: 0
-}
+const startBtn = document.querySelector('#startBtn');
+const stopBtn = document.querySelector('#stopBtn');
+
+let simulationRunning = false;
 
 const pp = {
   mass: 25,
@@ -17,34 +17,72 @@ const pp = {
   angleV: 0,
   angleA: 0,
   force: 0,
+  configured: false,
 }
 
 const draw = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const force = (Math.sin(pp.angle) * (pp.mass * 0.0110808)) / pp.len;
-  pp.angleA = -1 * force;
-  pp.angleV += pp.angleA;
-  pp.angle += pp.angleV || 0.01;
+  // const force = (Math.sin(pp.angle) * (pp.mass * 0.0110808)) / pp.len;
+  // pp.angleA = -1 * force;
+  // pp.angleV += pp.angleA;
+  // pp.angle += pp.angleV || 0.01;
+  //
+  // // dampen the velocity
+  // pp.angleV *= 0.999;
 
-  // dampen the velocity
-  pp.angleV *= 0.999;
 
-
-  pp.bob.x = pp.len * Math.sin(pp.angle) + pp.origin.x;
-  pp.bob.y = pp.len * Math.cos(pp.angle) + pp.origin.y;
+  // pp.bob.x = pp.len * Math.sin(pp.angle) + pp.origin.x;
+  // pp.bob.y = pp.len * Math.cos(pp.angle) + pp.origin.y;
 
   const circle = new Path2D();
-  circle.arc(pp.bob.x, pp.bob.y, pp.bob.mass * 2, 0, Math.PI * 2);
+  circle.arc(pp.bob.x+pp.origin.x, pp.bob.y, pp.bob.mass * 2, 0, Math.PI * 2);
   ctx.fill(circle);
 
   ctx.beginPath();
   ctx.moveTo(pp.origin.x, pp.origin.y);
-  ctx.lineTo(pp.bob.x, pp.bob.y);
+  ctx.lineTo(pp.bob.x+pp.origin.x, pp.bob.y);
   ctx.stroke();
   ctx.closePath();
 
-  requestAnimationFrame(draw);
+  // requestAnimationFrame(draw);
 };
 
-requestAnimationFrame(draw);
+async function getPendulumCoordinates (){
+  if (!pp.configured) {
+    await fetch('http://localhost:3000/configure', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        angularOffset: pp.angle,
+        mass: pp.mass,
+        stringLength: pp.len,
+      })
+    });
+    pp.configured = true;
+  }
+  const response = await fetch('http://localhost:3000/coordinates');
+  const {x, y} = await response.json();
+  pp.bob.x = x;
+  pp.bob.y = y;
+  requestAnimationFrame(() => {
+    draw();
+    if (simulationRunning) {
+      setTimeout(getPendulumCoordinates, 200);
+    }
+  });
+}
+
+function start() {
+  simulationRunning = true;
+  getPendulumCoordinates();
+}
+
+function stop() {
+  simulationRunning = false;
+}
+
+startBtn.addEventListener('click', start);
+stopBtn.addEventListener('click', stop);
