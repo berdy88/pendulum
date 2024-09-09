@@ -1,8 +1,11 @@
+import {PendulumControls} from './pendulum-controls.js';
+
 export class Pendulum {
   index;
   apiUrl;
   canvasContext;
   stringOffset;
+  controls;
 
   x;
   y;
@@ -20,7 +23,9 @@ export class Pendulum {
     this.x = x;
     this.y = y;
     this.mass = mass;
+    this.controls = new PendulumControls(this.index, (params) => this.updateParams(params));
     this.calculateParamsFromCoordinates();
+    this.controls.mass = this.mass;
   }
 
   calculateParamsFromCoordinates() {
@@ -28,6 +33,17 @@ export class Pendulum {
     const h = Math.sqrt(Math.pow(x, 2) + Math.pow(this.y, 2));
     this.angularOffset = Math.asin(x / h);
     this.stringLength = h;
+
+    // sync values with controls
+    this.controls.angularOffset = this.angularOffset;
+    this.controls.stringLength = this.stringLength;
+  }
+
+  updateParams(params) {
+    // sync with values from controls
+    for (const [param, val] of Object.entries(params)) {
+      this[param] = val;
+    }
   }
 
   async configure() {
@@ -47,6 +63,10 @@ export class Pendulum {
 
   async start() {
     return fetch(`${this.apiUrl}/start`);
+  }
+
+  async resume() {
+    return fetch(`${this.apiUrl}/resume`);
   }
 
   async stop() {

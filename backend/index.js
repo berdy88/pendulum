@@ -45,6 +45,12 @@ app.get('/stop', (_, res) => {
   res.send();
 });
 
+app.get('/resume', (_, res) => {
+  console.log(instanceNumber, 'Resuming');
+  pendulum.resume();
+  res.send();
+});
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 });

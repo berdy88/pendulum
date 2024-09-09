@@ -5,6 +5,7 @@ const canvas = document.getElementById('pendulum-render');
 const canvasContext = canvas.getContext('2d');
 
 const startBtn = document.querySelector('#startBtn');
+const pauseBtn = document.querySelector('#pauseBtn');
 const stopBtn = document.querySelector('#stopBtn');
 
 const danglePoints = [200, 400, 600, 800, 1000];
@@ -46,11 +47,33 @@ function start() {
   });
   simulationRunning = true;
   updatePendulums();
+
+  pauseBtn.disabled = false;
+  pauseBtn.innerText = 'Pause';
 }
 
 function stop() {
   simulationRunning = false;
   pendulums.forEach((p) => p.stop());
+
+  pauseBtn.disabled = true;
+}
+
+function pauseResume() {
+   if (simulationRunning) {
+    pendulums.forEach(async (p) => {
+      await p.stop();
+    });
+    simulationRunning = false;
+    pauseBtn.innerText = 'Resume'
+  } else {
+    pendulums.forEach(async (p) => {
+      await p.resume();
+    });
+    simulationRunning = true;
+    updatePendulums();
+    pauseBtn.innerText = 'Pause'
+  }
 }
 
 function getCanvasMousePosition(ev) {
@@ -101,6 +124,7 @@ canvas.addEventListener('mouseup', canvasMouseUp);
 canvas.addEventListener('mouseout', canvasMouseUp);
 
 startBtn.addEventListener('click', start);
+pauseBtn.addEventListener('click', pauseResume);
 stopBtn.addEventListener('click', stop);
 
 requestAnimationFrame(draw);

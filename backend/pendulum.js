@@ -9,7 +9,7 @@ export default class Pendulum {
   angle;
   velocity = 0;
 
-  interval;
+  interval = null;
   simulationRunning = false;
 
   configure(mass, angularOffset, stringLength, stringOffset) {
@@ -22,19 +22,27 @@ export default class Pendulum {
     this.stringOffset = stringOffset;
   }
 
-  start() {
+start() {
     if (this.interval) {
       this.stop();
     }
     this.angle = this.angularOffset;  // reset initially configured angle
-    this.updatePosition();
-    this.interval = setInterval(() => this.updatePosition(), 10);
-    this.simulationRunning = true;
+    this.resume();
   }
 
   stop() {
     clearInterval(this.interval);
+    this.interval = null;
     this.simulationRunning = false;
+  }
+
+  resume() {
+    if (this.interval) {
+      this.stop();
+    }
+    this.updatePosition();
+    this.interval = setInterval(() => this.updatePosition(), 10);
+    this.simulationRunning = true;
   }
 
   updatePosition() {

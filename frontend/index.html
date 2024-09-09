@@ -1,20 +1,103 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
-  </head>
-  <body>
-    <div id="app">
-      <h1>Pendulum</h1>
-      <canvas id="pendulum-render" width="1800" height="600"></canvas>
-      <div>
-        <button id="startBtn">Start</button>
-        <button id="stopBtn">Stop</button>
-      </div>
-    </div>
-    <script type="module" src="./main.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/svg+xml" href="/vite.svg"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vite App</title>
+</head>
+<body>
+<div id="app">
+  <h1>Pendulum</h1>
+  <canvas id="pendulum-render" width="1800" height="600"></canvas>
+
+  <fieldset id="pendulum-0-controls">
+    <label>
+      Angular Offset
+      <input name="angularOffset" type="number"/>
+    </label>
+
+    <label>
+      Mass
+      <input name="mass" type="number" min="10" max="200"/>
+    </label>
+
+    <label>
+      String Length
+      <input name="stringLength" type="number" min="100" max="550"/>
+    </label>
+  </fieldset>
+  <fieldset id="pendulum-1-controls">
+    <label>
+      Angular Offset
+      <input name="angularOffset" type="number"/>
+    </label>
+
+    <label>
+      Mass
+      <input name="mass" type="number" min="10" max="200"/>
+    </label>
+
+    <label>
+      String Length
+      <input name="stringLength" type="number" min="100" max="550"/>
+    </label>
+  </fieldset>
+  <fieldset id="pendulum-2-controls">
+    <label>
+      Angular Offset
+      <input name="angularOffset" type="number"/>
+    </label>
+
+    <label>
+      Mass
+      <input name="mass" type="number" min="10" max="200"/>
+    </label>
+
+    <label>
+      String Length
+      <input name="stringLength" type="number" min="100" max="550"/>
+    </label>
+  </fieldset>
+  <fieldset id="pendulum-3-controls">
+    <label>
+      Angular Offset
+      <input name="angularOffset" type="number"/>
+    </label>
+
+    <label>
+      Mass
+      <input name="mass" type="number" min="10" max="200"/>
+    </label>
+
+    <label>
+      String Length
+      <input name="stringLength" type="number" min="100" max="550"/>
+    </label>
+  </fieldset>
+  <fieldset id="pendulum-4-controls">
+    <label>
+      Angular Offset
+      <input name="angularOffset" type="number"/>
+    </label>
+
+    <label>
+      Mass
+      <input name="mass" type="number" min="10" max="200"/>
+    </label>
+
+    <label>
+      String Length
+      <input name="stringLength" type="number" min="100" max="550"/>
+    </label>
+  </fieldset>
+
+  <div>
+    <button id="startBtn">Start</button>
+    <button id="pauseBtn" disabled>Pause</button>
+    <button id="stopBtn">Stop</button>
+  </div>
+</div>
+<script type="module" src="./main.js"></script>
+</body>
 </html>
