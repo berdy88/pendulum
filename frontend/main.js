@@ -9,11 +9,15 @@ const stopBtn = document.querySelector('#stopBtn');
 
 const danglePoints = [200, 400, 600, 800, 1000];
 const pendulums = [
-  new Pendulum(0, canvasContext, danglePoints[0], 100, 400, 15),
+  new Pendulum(0, canvasContext, danglePoints[0], 'blue', 100, 400, 15),
+  new Pendulum(1, canvasContext, danglePoints[1], 'red', 555, 333, 40),
+  new Pendulum(2, canvasContext, danglePoints[2], 'yellow', 580, 450, 25),
+  new Pendulum(3, canvasContext, danglePoints[3], 'green', 700, 78, 50),
+  new Pendulum(4, canvasContext, danglePoints[4], 'purple', 1600, 200, 30),
 ];
 
 let simulationRunning = false;
-let i = -1;
+let i = -1; // global render counter, used in the `updatePendulums` function
 let isDragging = null;
 
 

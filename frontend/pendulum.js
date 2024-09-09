@@ -1,7 +1,6 @@
-const API_URL = 'http://localhost:3000';
-
 export class Pendulum {
   index;
+  apiUrl;
   canvasContext;
   stringOffset;
 
@@ -12,10 +11,12 @@ export class Pendulum {
   angularOffset = 0;
   stringLength = 0;
 
-  constructor(index, canvasContext, stringOffset, x, y, mass) {
+  constructor(index, canvasContext, stringOffset, color, x, y, mass) {
     this.index = index;
+    this.apiUrl = `http://localhost:${3000+index}`;
     this.canvasContext = canvasContext;
     this.stringOffset = stringOffset;
+    this.color = color;
     this.x = x;
     this.y = y;
     this.mass = mass;
@@ -30,7 +31,7 @@ export class Pendulum {
   }
 
   async configure() {
-    await fetch(`${API_URL}/configure`, {
+    await fetch(`${this.apiUrl}/configure`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -45,15 +46,15 @@ export class Pendulum {
   }
 
   async start() {
-    return fetch(`${API_URL}/start`);
+    return fetch(`${this.apiUrl}/start`);
   }
 
   async stop() {
-    return fetch(`${API_URL}/stop`);
+    return fetch(`${this.apiUrl}/stop`);
   }
 
   async getCoordinates() {
-    const response = await fetch(`${API_URL}/coordinates`);
+    const response = await fetch(`${this.apiUrl}/coordinates`);
     const {x, y} = await response.json();
     this.x = x;
     this.y = y;
@@ -62,11 +63,14 @@ export class Pendulum {
   draw() {
     const circle = new Path2D();
     circle.arc(this.x, this.y, this.mass * 2, 0, Math.PI * 2);
+    this.canvasContext.fillStyle = this.color;
     this.canvasContext.fill(circle);
 
     this.canvasContext.beginPath();
     this.canvasContext.moveTo(this.stringOffset, 0);
     this.canvasContext.lineTo(this.x, this.y);
+    this.canvasContext.lineWidth = 2;
+    this.canvasContext.strokeStyle = this.color;
     this.canvasContext.stroke();
     this.canvasContext.closePath();
   }
