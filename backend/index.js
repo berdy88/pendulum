@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import Pendulum from './pendulum.js';
+import mqtt from 'mqtt';
 
 
 let instanceNumber = 0;
@@ -15,7 +16,13 @@ for (let i = 0; i < process.argv.length; ++i) {
     instanceNumber = process.argv[++i];
     port = 3000 + Number(instanceNumber);
   }
+
+  if (arg === '-n' || arg === '--neighbours') {
+    neighbours = process.argv[++i].split(',').map(i => 3000+Number(i));
+  }
 }
+
+const mqttClient = mqtt.connect('mqtt://broker.hivemq.com');
 
 const app = express()
 app.use(cors());
@@ -53,4 +60,48 @@ app.get('/resume', (_, res) => {
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
+
+  let restartCount = 0;
+  let pendingRestart = null;
+
+  mqttClient.subscribe('perso/topic/pendulum');
+
+  mqttClient.on('message', (topic, message) => {
+
+    if (message.toString() === 'STOP') {
+      console.log(instanceNumber, 'STOP RECEIVED!');
+      pendulum.stop();
+      if (pendingRestart === null) {
+        pendingRestart = setTimeout(() => {
+          mqttClient.publish('perso/topic/pendulum', 'RESTART');
+          pendingRestart = null;
+        }, 5000);
+      }
+    }
+
+    if(message.toString() === 'RESTART') {
+      console.log(instanceNumber, 'RESTART RECEIVED!');
+      restartCount++;
+      if (restartCount === 5) {
+        restartCount = 0;
+        pendulum.start();
+      }
+    }
+  });
+
+  for (const neighbour of neighbours) {
+    setInterval(async () => {
+      if (pendulum.simulationRunning) {
+        const response = await fetch(`http://localhost:${neighbour}/coordinates`);
+        const {x, y} = await response.json();
+
+        // Check if closer than 100 (squared to save from using the `Math.sqrt` function)
+        if (pendulum.getDistance(x, y) <= 10000) {
+          console.log(instanceNumber, 'TOO CLOSE! SENDING STOP SIGNAL!');
+          mqttClient.publish('perso/topic/pendulum', 'STOP');
+          pendulum.stop();
+        }
+      }
+    }, 20);
+  }
 });

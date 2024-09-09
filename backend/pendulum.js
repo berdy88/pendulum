@@ -56,4 +56,9 @@ start() {
     // dampen the velocity
     this.velocity *= 0.999;
   }
+
+  getDistance(x, y) {
+    // return Math.sqrt(Math.pow((this.x) - x, 2) + Math.pow(this.y - y, 2));
+    return Math.pow((this.x) - x, 2) + Math.pow(this.y - y, 2);
+  }
 }
